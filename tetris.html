@@ -25,11 +25,16 @@
             margin-bottom: 10px;
             font-size: 24px;
         }
+        #gameOver {
+            font-size: 48px;
+            color: red;
+        }
     </style>
 </head>
 <body>
     <div id="score">Score: 0</div>
     <canvas id="tetris" width="300" height="600"></canvas>
+    <div id="gameOver" style="display: none;">Game Over!</div>
 
     <script>
         const canvas = document.getElementById('tetris');
@@ -60,6 +65,7 @@
         let board = Array.from({ length: ROWS }, () => Array(COLUMNS).fill(0));
         let currentPiece = createPiece();
         let currentPos = { x: Math.floor(COLUMNS / 2) - 1, y: 0 };
+        let dropSpeed = 800; // Drop speed in milliseconds
 
         function createPiece() {
             const index = Math.floor(Math.random() * PIECES.length);
@@ -126,7 +132,7 @@
                 clearLines();
                 if (currentPos.y <= 0) {
                     gameOver = true;
-                    alert("Game Over!");
+                    document.getElementById('gameOver').style.display = 'block';
                 }
                 currentPiece = createPiece();
                 currentPos = { x: Math.floor(COLUMNS / 2) - 1, y: 0 };
@@ -141,7 +147,7 @@
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLUMNS; x++) {
                     if (board[y][x]) {
-                        context.fillStyle = COLORS[board[y][x] - 1];
+                        context.fillStyle = COLORS[PIECES.indexOf(board[y][x])];
                         context.fillRect(x, y, 1, 1);
                     }
                 }
@@ -151,16 +157,21 @@
             for (let y = 0; y < currentPiece.length; y++) {
                 for (let x = 0; x < currentPiece[y].length; x++) {
                     if (currentPiece[y][x]) {
-                        context.fillStyle = COLORS[PIECES.indexOf(currentPiece) % COLORS.length];
+                        context.fillStyle = COLORS[PIECES.indexOf(currentPiece)];
                         context.fillRect(currentPos.x + x, currentPos.y + y, 1, 1);
                     }
                 }
             }
         }
 
-        function update() {
+        let lastTime = 0;
+        function update(time) {
             if (!gameOver) {
-                dropPiece();
+                const deltaTime = time - lastTime;
+                if (deltaTime > dropSpeed) {
+                    dropPiece();
+                    lastTime = time;
+                }
                 draw();
                 requestAnimationFrame(update);
             }
@@ -178,7 +189,7 @@
             }
         });
 
-        update();
+        update(0);
     </script>
 </body>
 </html>
